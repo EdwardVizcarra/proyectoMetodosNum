@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integración Numérica en la Vida Real</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #09ee3b 0%, #1c0bb8 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0b3464 0%, #04bbf3 100%);
+      padding: 40px;
+      text-align: center;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .main-content {
+      padding: 40px;
+    }
+
+    .intro-section {
+      background: linear-gradient(135deg, #613066 0%, #f5576c 100%);
+      padding: 30px;
+      border-radius: 15px;
+      margin-bottom: 40px;
+      color: white;
+      text-align: center;
+    }
+
+    .intro-section p {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-container {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-bottom: 40px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .form-container h2 {
+      color: #667eea;
+      margin-bottom: 25px;
+      font-size: 1.8rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      color: #555;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .form-group input {
+      padding: 12px 15px;
+      border: 2px solid #e1e8ed;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: #f8fafc;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-calculate {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+      display: block;
+      margin: 0 auto;
+    }
+
+    .btn-calculate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-calculate:active {
+      transform: translateY(0);
+    }
+
+    .results-container {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-bottom: 40px;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .results-container h2 {
+      color: #667eea;
+      margin-bottom: 25px;
+      font-size: 1.8rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    td {
+      padding: 12px 15px;
+      text-align: center;
+      border-bottom: 1px solid #e1e8ed;
+      background: white;
+    }
+
+    tr:hover td {
+      background: #f8fafc;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    canvas {
+      border-radius: 10px;
+      max-width: 100%;
+    }
+
+    .method-card {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+    }
+
+    .method-card h4 {
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .method-card p {
+      color: #666;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #667eea;
+      font-size: 1.1rem;
+      margin: 20px 0;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .loading {
+      animation: pulse 2s infinite;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .main-content {
+        padding: 20px;
+      }
+      
+      .form-container, .results-container, .chart-container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <button onclick="location.href='Main.html'" style="margin-top: 20px;">⬅ Volver al Menú</button>
+    <div class="header">
+      <h1>🧮 Integración Numérica</h1>
+      <p>Aplicación interactiva para calcular integrales usando diferentes métodos numéricos</p>
+      <h3> CADENA DE TIENDAS: ESTIMACIÓN DE INGRESOS ACUMULADOS</h3>
+      <img src="cosas3.png" alt="Descripción de la imagen" style="max-width:100%; height:auto;"/>
+    </div>
+
+    <div class="main-content">
+      
+      <div class="intro-section">
+        <p>
+        Una cadena de tiendas desea conocer el ingreso total generado durante un período de tiempo (por ejemplo, una semana), pero solo cuenta con los datos de ventas a ciertas horas del día (no continuos). El ingreso por hora no es constante, así que no basta con sumar —se requiere una aproximación del área bajo la curva de ingresos por hora, lo cual se hace con integración numérica.
+        </p>
+      </div>
+
+      <div class="form-container">
+        <h2>📊 Configuración de Parámetros</h2>
+        <form id="formulario">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>⏱️ Tiempo inicial (hrs)(a):</label>
+              <input type="number" step="any" id="a" value="0" required>
+            </div>
+            <div class="form-group">
+              <label>⏱️ Tiempo final (hrs)(b):</label>
+              <input type="number" step="any" id="b" value="10" required>
+            </div>
+            <div class="form-group">
+              <label>📏 Número de intervalos (hrs)(n):</label>
+              <input type="number" id="n" min="1" value="100" required>
+            </div>
+            <div class="form-group">
+              <label>📈 Función de dinero ganado(x):</label>
+              <input type="text" id="funcion" placeholder="Ej: Math.sin(x) + 2" value="Math.sin(x) + 2" required>
+            </div>
+          </div>
+          <button type="submit" class="btn-calculate">🔬 Calcular Integral</button>
+        </form>
+        <div class="loading" id="loading">Calculando resultados...</div>
+      </div>
+
+      <div class="results-container" id="results-container" style="display: none;">
+        <h2>📋 Resultados de la Integración</h2>
+        <div class="results-grid">
+          <div>
+            <div id="resultados"></div>
+          </div>
+          <div>
+            <div class="method-card">
+              <h4>🔢 Método del Rectángulo</h4>
+              <p>Aproxima el área usando rectángulos. Error: O(h²)</p>
+            </div>
+            <div class="method-card">
+              <h4>📐 Método del Trapecio</h4>
+              <p>Usa trapecios para mejor aproximación. Error: O(h²)</p>
+            </div>
+            <div class="method-card">
+              <h4>🎯 Simpson 1/3</h4>
+              <p>Método de alta precisión con parábolas. Error: O(h⁴)</p>
+            </div>
+            <div class="method-card">
+              <h4>⚡ Simpson 3/8</h4>
+              <p>Variante de Simpson con mayor estabilidad. Error: O(h⁴)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-container" id="chart-container" style="display: none;">
+        <h2>📊 Comparación Visual de Métodos</h2>
+        <canvas id="grafico" width="600" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function evaluarFuncion(fx, x) {
+      try {
+        return eval(fx);
+      } catch (e) {
+        return NaN;
+      }
+    }
+
+    function integrar(fx, a, b, n, metodo) {
+      let h = (b - a) / n;
+      let suma = 0;
+      if (metodo === 'rectangulo') {
+        for (let i = 0; i < n; i++) {
+          let xi = a + i * h + h / 2;
+          suma += evaluarFuncion(fx, xi);
+        }
+        return h * suma;
+      } else if (metodo === 'trapecio') {
+        suma += evaluarFuncion(fx, a) + evaluarFuncion(fx, b);
+        for (let i = 1; i < n; i++) {
+          suma += 2 * evaluarFuncion(fx, a + i * h);
+        }
+        return (h / 2) * suma;
+      } else if (metodo === 'simpson13') {
+        if (n % 2 !== 0) n++;
+        suma += evaluarFuncion(fx, a) + evaluarFuncion(fx, b);
+        for (let i = 1; i < n; i++) {
+          suma += (i % 2 === 0 ? 2 : 4) * evaluarFuncion(fx, a + i * h);
+        }
+        return (h / 3) * suma;
+      } else if (metodo === 'simpson38') {
+        if (n % 3 !== 0) n += 3 - (n % 3);
+        suma += evaluarFuncion(fx, a) + evaluarFuncion(fx, b);
+        for (let i = 1; i < n; i++) {
+          suma += (i % 3 === 0 ? 2 : 3) * evaluarFuncion(fx, a + i * h);
+        }
+        return (3 * h / 8) * suma;
+      }
+    }
+
+    document.getElementById("formulario").addEventListener("submit", function(e) {
+      e.preventDefault();
+      
+      // Mostrar loading
+      document.getElementById("loading").classList.add("show");
+      
+      setTimeout(() => {
+        let a = parseFloat(document.getElementById("a").value);
+        let b = parseFloat(document.getElementById("b").value);
+        let n = parseInt(document.getElementById("n").value);
+        let fx = document.getElementById("funcion").value;
+
+        let metodos = ["rectangulo", "trapecio", "simpson13", "simpson38"];
+        let nombres = ["🔢 Rectángulo", "📐 Trapecio", "🎯 Simpson 1/3", "⚡ Simpson 3/8"];
+        let resultados = metodos.map(m => integrar(fx, a, b, n, m));
+
+        let salida = `<table><tr><th>Método</th><th>Resultado</th><th>Precisión</th></tr>`;
+        const colores = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+        for (let i = 0; i < resultados.length; i++) {
+          const precision = i < 2 ? 'Media' : 'Alta';
+          salida += `<tr style="border-left: 4px solid ${colores[i]};">
+            <td><strong>${nombres[i]}</strong></td>
+            <td>${resultados[i].toFixed(6)}</td>
+            <td>${precision}</td>
+          </tr>`;
+        }
+        salida += `</table>`;
+
+        document.getElementById("resultados").innerHTML = salida;
+        document.getElementById("results-container").style.display = "block";
+        document.getElementById("chart-container").style.display = "block";
+
+        // Gráfica mejorada
+        const ctx = document.getElementById('grafico').getContext('2d');
+        if (window.chart) window.chart.destroy();
+        window.chart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: nombres,
+            datasets: [{
+              label: 'Resultado de la integral',
+              data: resultados,
+              backgroundColor: colores.map(color => color + '80'),
+              borderColor: colores,
+              borderWidth: 2,
+              borderRadius: 5,
+              borderSkipped: false,
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { 
+                display: false 
+              },
+              title: { 
+                display: true, 
+                text: '📊 Comparación de Métodos de Integración Numérica',
+                font: {
+                  size: 16,
+                  weight: 'bold'
+                },
+                color: '#333'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                grid: {
+                  color: '#e1e8ed'
+                },
+                ticks: {
+                  color: '#666'
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  color: '#666',
+                  maxRotation: 45
+                }
+              }
+            }
+          }
+        });
+
+        // Ocultar loading
+        document.getElementById("loading").classList.remove("show");
+        
+        // Scroll suave a los resultados
+        document.getElementById("results-container").scrollIntoView({ 
+          behavior: 'smooth' 
+        });
+      }, 500);
+    });
+  </script>
+</body>
+</html>
